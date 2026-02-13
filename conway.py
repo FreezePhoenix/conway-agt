@@ -19,9 +19,18 @@ DefaultStrategy = Strategy(
     'standard'
 )
 
-VirusStrategy = Strategy(
+VirulentStrategy = Strategy(
     np.array([1, 2, 1, 2, 1, 2, 1, 2, 1]),
     'standard'
+)
+
+TrueVirulentStrategy = Strategy(
+    np.array([1, 2, 2, 2, 2]),
+    np.array([
+        [0, 1, 0],
+        [1, 0, 1],
+        [0, 1, 0],
+    ])
 )
 
 Immutable = Strategy(
@@ -49,7 +58,7 @@ class Simulator:
         self.index_masks = []
         self.has_standard = False
         for index, strategy in enumerate(strategies):
-            if strategy.kernel == 'standard':
+            if isinstance(strategy.kernel, str) and strategy.kernel == 'standard':
                 self.has_standard = True
             self.index_masks.append(
                 index == index_grid
@@ -65,7 +74,7 @@ class Simulator:
         standard_conv = signal.convolve2d(self.state_grid, StandardMask, mode="same")
         new_state = np.zeros_like(self.state_grid)
         for index, strategy in enumerate(self.strategies):
-            convolution = standard_conv if strategy.kernel == 'standard' else signal.convolve2d(
+            convolution = standard_conv if isinstance(strategy.kernel, str) and strategy.kernel == 'standard' else signal.convolve2d(
                 self.state_grid,
                 strategy.kernel,
                 mode="same"
@@ -91,24 +100,65 @@ class Simulator:
         print(self.state_grid)
     def print_averages(self):
         print(self.cell_accumulator / self.accumulator)
-    def run(self, steps = 100):
+    def run(self, steps = 100, print = False):
         for i in range(steps):
             self.step()
+            if print:
+                self.print_current_state()
+    def print_average(self):
+        print(np.sum(self.cell_accumulator) / np.size(self.cell_accumulator) / self.accumulator)
             
+# simulation = Simulator(
+#     [VirulentStrategy],
+#     np.array([
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#     ]),
+#     np.array([
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 1, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0],
+#     ])
+# )
+
+# simulation = Simulator(
+#     [TrueVirulentStrategy],
+#     np.zeros((9,9)),
+#     np.array([
+#         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 1, 0, 1, 0, 0, 0],
+#         [0, 0, 0, 0, 1, 0, 0, 0, 0],
+#         [0, 0, 0, 1, 0, 1, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#     ])
+# )
+
 simulation = Simulator(
-    [UnitBlinker],
+    [TrueVirulentStrategy],
+    np.zeros((5,5)),
     np.array([
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-    ]),
-    np.array([
-        [0, 0, 0],
-        [1, 1, 1],
-        [0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
     ])
 )
 
-simulation.run(99)
 simulation.print_current_state()
+simulation.run(10, True)
 simulation.print_averages()
+simulation.print_average()
