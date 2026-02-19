@@ -32,7 +32,8 @@ TrueVirulentStrategy = Strategy(
 )
 
 Immutable = Strategy(
-    np.array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+    np.array([0, 0, 0, 0, 0, 0, 0, 0, 0]),
+    np.array([[0]])
 )
 
 UnitBlinker = Strategy(
@@ -107,11 +108,11 @@ class Simulator:
     def print_best_response_analysis(self):
         for index, strategy in enumerate(self.strategies):
             print(f"Strategy {index} has the following kernel: ")
-            print(strategy.kernel)
+            print(StandardMask if strategy.kernel is None else strategy.kernel)
             print(f"And the following response dynamic:")
             print(strategy.action)
             print(f"The following biases were received for each number of neighbors:")
-            counts = np.sum(self.count_accumulator, (1, 2))
+            counts = np.sum(self.count_accumulator, (1, 2), where = self.index_masks[index])
             counts.resize(strategy.action.shape)
             print(counts)
             print(f"The following would be the optimal response dynamics:")
@@ -178,7 +179,14 @@ class Simulator:
 
 simulation = Simulator(
     [TrueVirulentStrategy],
-    np.zeros((5,5)),
+    np.array([
+        
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+    ]),
     np.array([
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
